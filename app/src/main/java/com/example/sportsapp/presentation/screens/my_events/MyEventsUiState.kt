@@ -2,17 +2,6 @@ package com.example.sportsapp.presentation.screens.my_events
 
 import com.example.sportsapp.domain.model.SportEvent
 
-sealed class MyEventsUiState {
-    data object Initial: MyEventsUiState()
-    data object Loading: MyEventsUiState()
-    data class Success(
-        val hostedEvents: List<SportEvent>,
-        val joinedEvents: List<SportEvent>,
-        val isShowingHosted: Boolean
-    ): MyEventsUiState()
-    data class Error(val message: String): MyEventsUiState()
-}
-
 sealed class MyEventsIntent {
     data object LoadEvents: MyEventsIntent()
     data object ToggleEventType: MyEventsIntent()
