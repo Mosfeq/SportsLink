@@ -15,9 +15,11 @@ data class FilterState(
     val selectedExperience: String? = null,
     val selectedSport: String? = null,
     val selectedDate: Date? = null,
+    val selectedLocation: String? = null,
     val isExperienceDialogOpen: Boolean = false,
     val isSportDialogOpen: Boolean = false,
-    val isDateDialogOpen: Boolean = false
+    val isDateDialogOpen: Boolean = false,
+    val isLocationDialogOpen: Boolean = false
 )
 
 data class AddEventDialogState(
@@ -43,15 +45,19 @@ sealed class SportsListIntent {
     data class SetExperienceFilter(val experience: String) : SportsListIntent()
     data class SetSportFilter(val sport: String) : SportsListIntent()
     data class SetDateFilter(val date: Date) : SportsListIntent()
+    data class SetLocationFilter(val location: String) : SportsListIntent()
     data object ClearExperienceFilter : SportsListIntent()
     data object ClearSportFilter : SportsListIntent()
     data object ClearDateFilter : SportsListIntent()
+    data object ClearLocationFilter : SportsListIntent()
     data object OpenExperienceFilter : SportsListIntent()
     data object OpenSportFilter : SportsListIntent()
     data object OpenDateFilter : SportsListIntent()
+    data object OpenLocationFilter : SportsListIntent()
     data object CloseExperienceFilter : SportsListIntent()
     data object CloseSportFilter : SportsListIntent()
     data object CloseDateFilter : SportsListIntent()
+    data object CloseLocationFilter : SportsListIntent()
 
     data object OpenAddEventDialog : SportsListIntent()
     data object CloseAddEventDialog : SportsListIntent()
@@ -68,7 +74,8 @@ sealed class SportsListIntent {
     data object CloseDatePicker : SportsListIntent()
     data object OpenTimePicker : SportsListIntent()
     data object CloseTimePicker : SportsListIntent()
-    data object SubmitNewEvent : SportsListIntent()
+
+    data object AddSportEvent : SportsListIntent()
 
     data class JoinEvent(val event: SportEvent) : SportsListIntent()
 }

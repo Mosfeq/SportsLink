@@ -36,9 +36,6 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -52,13 +49,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.sportsapp.R
-import com.example.sportsapp.domain.model.SportEvent
 import com.example.sportsapp.domain.model.Sports
 import com.example.sportsapp.presentation.screens.sports_list.components.ExperienceFilterItem
 import com.example.sportsapp.presentation.screens.sports_list.components.FilterItem
 import com.example.sportsapp.presentation.screens.sports_list.components.SportFilterItem
 import com.example.sportsapp.presentation.screens.sports_list.components.SportsListItem
-import com.example.sportsapp.util.UiState
 import kotlinx.coroutines.flow.collectLatest
 import java.sql.Date
 import java.sql.Time
@@ -85,32 +80,8 @@ fun SportsListScreen(
         else -> 15.sp
     }
 
-    val sportEventsList by viewModel.sportsEventList.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    var showExperienceFilter by remember { mutableStateOf(false) }
-    var showDateFilter by remember { mutableStateOf(false) }
-    var showSportFilter by remember { mutableStateOf(false) }
-    var showLocationFilter by remember { mutableStateOf(false) }
-    var showAddSportEventFilter by remember { mutableStateOf(false) }
-
-    var eventTitle by remember { mutableStateOf("") }
-    var eventLocation by remember { mutableStateOf("") }
-    var selectedSport by remember { mutableStateOf<Sports?>(null) }
-    var selectedDate by remember { mutableStateOf<Date?>(null) }
-    var selectedTime by remember { mutableStateOf<Time?>(null) }
-    var eventExperience by remember { mutableStateOf("") }
-    var eventHost by remember { mutableStateOf("") }
-
-    var selectedExperienceFilter by remember { mutableStateOf("") }
-    var selectedSportFilter by remember { mutableStateOf("") }
-    var selectedDateFilter by remember { mutableStateOf<Date?>(null) }
-    var isFilteringDate by remember { mutableStateOf(false) }
-
-    var expandedSportMenu by remember { mutableStateOf(false) }
-    var expandedExperienceMenu by remember { mutableStateOf(false) }
-
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
     val timePickerState = rememberTimePickerState()
 
@@ -130,26 +101,29 @@ fun SportsListScreen(
                 modifier = Modifier
                     .padding(20.dp)
             ){
-                if (showDatePicker){
+                if (state.addEventDialog.isDatePickerOpen || state.filters.isDateDialogOpen) {
                     DatePickerDialog(
                         onDismissRequest = {
-                            showDatePicker = false
-                            if (isFilteringDate){
-                                showDateFilter = true
-                                isFilteringDate = false
-                            }},
+                            if (state.addEventDialog.isDatePickerOpen) {
+                                viewModel.handleIntent(SportsListIntent.CloseDatePicker)
+                            } else {
+                                viewModel.handleIntent(SportsListIntent.CloseDateFilter)
+                            }
+                        },
                         confirmButton = {
                             TextButton(
                                 onClick = {
                                     datePickerState.selectedDateMillis?.let { millis ->
-                                        if (isFilteringDate){
-                                            selectedDateFilter= Date(millis)
-                                            showDatePicker = false
-                                            showDateFilter = true
-                                            isFilteringDate = false
+                                        if (state.addEventDialog.isDatePickerOpen) {
+                                            viewModel.handleIntent(
+                                                SportsListIntent.UpdateEventDate(Date(millis))
+                                            )
+                                            viewModel.handleIntent(SportsListIntent.CloseDatePicker)
                                         } else {
-                                            selectedDate = Date(millis)
-                                            showDatePicker = false
+                                            viewModel.handleIntent(
+                                                SportsListIntent.SetDateFilter(Date(millis))
+                                            )
+                                            viewModel.handleIntent(SportsListIntent.CloseDateFilter)
                                         }
                                     }
                                 }
@@ -159,10 +133,10 @@ fun SportsListScreen(
                         },
                         dismissButton = {
                             TextButton(onClick = {
-                                showDatePicker = false
-                                if (isFilteringDate){
-                                    showDateFilter = true
-                                    isFilteringDate = false
+                                if (state.addEventDialog.isDatePickerOpen) {
+                                    viewModel.handleIntent(SportsListIntent.CloseDatePicker)
+                                } else {
+                                    viewModel.handleIntent(SportsListIntent.CloseDateFilter)
                                 }
                             }) {
                                 Text("Cancel")
@@ -172,23 +146,30 @@ fun SportsListScreen(
                         DatePicker(state = datePickerState)
                     }
                 }
-                if (showTimePicker){
+                if (state.addEventDialog.isTimePickerOpen) {
                     AlertDialog(
-                        onDismissRequest = { showTimePicker = false },
+                        onDismissRequest = {
+                            viewModel.handleIntent(SportsListIntent.CloseTimePicker)
+                        },
                         confirmButton = {
                             TextButton(
                                 onClick = {
                                     val hour = timePickerState.hour
                                     val minute = timePickerState.minute
-                                    selectedTime = Time.valueOf(String.format(Locale.getDefault(),"%02d:%02d:00", hour, minute))
-                                    showTimePicker = false
+                                    val time = Time.valueOf(
+                                        String.format(Locale.getDefault(), "%02d:%02d:00", hour, minute)
+                                    )
+                                    viewModel.handleIntent(SportsListIntent.UpdateEventTime(time))
+                                    viewModel.handleIntent(SportsListIntent.CloseTimePicker)
                                 }
                             ) {
                                 Text("OK")
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showTimePicker = false }) {
+                            TextButton(onClick = {
+                                viewModel.handleIntent(SportsListIntent.CloseTimePicker)
+                            }) {
                                 Text("Cancel")
                             }
                         },
@@ -197,9 +178,11 @@ fun SportsListScreen(
                         }
                     )
                 }
-                if (showAddSportEventFilter) {
+                if (state.addEventDialog.isOpen) {
                     AlertDialog(
-                        onDismissRequest = { showAddSportEventFilter = false },
+                        onDismissRequest = {
+                            viewModel.handleIntent(SportsListIntent.CloseAddEventDialog)
+                        },
                         title = {
                             Text(
                                 text = "Add Event",
@@ -214,13 +197,13 @@ fun SportsListScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 OutlinedTextField(
-                                    value = eventTitle,
-                                    onValueChange = { eventTitle = it },
+                                    value = state.addEventDialog.title,
+                                    onValueChange = {
+                                        viewModel.handleIntent(SportsListIntent.UpdateEventTitle(it))
+                                    },
                                     label = {
-                                        Text(
-                                            "Event Title",
-                                            color = Color(0xFFAAAAAA)
-                                        )},
+                                        Text("Event Title", color = Color(0xFFAAAAAA))
+                                    },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -230,17 +213,17 @@ fun SportsListScreen(
                                         unfocusedBorderColor = Color(0xFF666666),
                                     )
                                 )
+
                                 Box {
                                     OutlinedTextField(
-                                        value = selectedSport?.name ?: "",
+                                        value = state.addEventDialog.sport ?: "",
                                         onValueChange = {},
-                                        label = { Text(
-                                            "Sport",
-                                            color = Color(0xFFAAAAAA)
-                                        )},
+                                        label = { Text("Sport", color = Color(0xFFAAAAAA)) },
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { expandedSportMenu = true },
+                                            .clickable {
+                                                viewModel.handleIntent(SportsListIntent.ToggleSportDropdown)
+                                            },
                                         readOnly = true,
                                         colors = OutlinedTextFieldDefaults.colors(
                                             disabledTextColor = Color.White,
@@ -250,33 +233,32 @@ fun SportsListScreen(
                                         enabled = false
                                     )
                                     DropdownMenu(
-                                        expanded = expandedSportMenu,
-                                        onDismissRequest = { expandedSportMenu = false },
+                                        expanded = state.addEventDialog.isSportDropdownOpen,
+                                        onDismissRequest = {
+                                            viewModel.handleIntent(SportsListIntent.ToggleSportDropdown)
+                                        },
                                         modifier = Modifier.background(Color(0xFF3C3C3E))
                                     ) {
                                         Sports.entries.forEach { sport ->
                                             DropdownMenuItem(
-                                                text = { Text(
-                                                    sport.displayName,
-                                                    color = Color.White
-                                                )},
+                                                text = { Text(sport.displayName, color = Color.White) },
                                                 onClick = {
-                                                    selectedSport = sport
-                                                    expandedSportMenu = false
+                                                    viewModel.handleIntent(
+                                                        SportsListIntent.UpdateEventSport(sport.displayName)
+                                                    )
+                                                    viewModel.handleIntent(SportsListIntent.ToggleSportDropdown)
                                                 }
                                             )
                                         }
                                     }
                                 }
 
-                                // Location
                                 OutlinedTextField(
-                                    value = eventLocation,
-                                    onValueChange = { eventLocation = it },
-                                    label = { Text(
-                                        "Location",
-                                        color = Color(0xFFAAAAAA)
-                                    )},
+                                    value = state.addEventDialog.location,
+                                    onValueChange = {
+                                        viewModel.handleIntent(SportsListIntent.UpdateEventLocation(it))
+                                    },
+                                    label = { Text("Location", color = Color(0xFFAAAAAA)) },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -287,17 +269,15 @@ fun SportsListScreen(
                                     )
                                 )
 
-                                // Date Picker
                                 OutlinedTextField(
-                                    value = selectedDate?.let { addDateFormatter.format(it) } ?: "",
+                                    value = state.addEventDialog.date?.let { addDateFormatter.format(it) } ?: "",
                                     onValueChange = {},
-                                    label = { Text(
-                                        "Date",
-                                        color = Color(0xFFAAAAAA)
-                                    )},
+                                    label = { Text("Date", color = Color(0xFFAAAAAA)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { showDatePicker = true },
+                                        .clickable {
+                                            viewModel.handleIntent(SportsListIntent.OpenDatePicker)
+                                        },
                                     readOnly = true,
                                     colors = OutlinedTextFieldDefaults.colors(
                                         disabledTextColor = Color.White,
@@ -309,22 +289,22 @@ fun SportsListScreen(
                                         Icon(
                                             painter = painterResource(id = R.drawable.calendar),
                                             contentDescription = "Select date",
-                                            modifier = Modifier.clickable { showDatePicker = true }
+                                            modifier = Modifier.clickable {
+                                                viewModel.handleIntent(SportsListIntent.OpenDatePicker)
+                                            }
                                         )
                                     }
                                 )
 
-                                // Time Picker
                                 OutlinedTextField(
-                                    value = selectedTime?.let { timeFormatter.format(it) } ?: "",
+                                    value = state.addEventDialog.time?.let { timeFormatter.format(it) } ?: "",
                                     onValueChange = {},
-                                    label = { Text(
-                                        "Time",
-                                        color = Color(0xFFAAAAAA)
-                                    )},
+                                    label = { Text("Time", color = Color(0xFFAAAAAA)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { showTimePicker = true },
+                                        .clickable {
+                                            viewModel.handleIntent(SportsListIntent.OpenTimePicker)
+                                        },
                                     readOnly = true,
                                     colors = OutlinedTextFieldDefaults.colors(
                                         disabledTextColor = Color.White,
@@ -336,23 +316,23 @@ fun SportsListScreen(
                                         Icon(
                                             painter = painterResource(id = R.drawable.calendar),
                                             contentDescription = "Select time",
-                                            modifier = Modifier.clickable { showTimePicker = true }
+                                            modifier = Modifier.clickable {
+                                                viewModel.handleIntent(SportsListIntent.OpenTimePicker)
+                                            }
                                         )
                                     }
                                 )
 
-                                // Experience Dropdown
                                 Box {
                                     OutlinedTextField(
-                                        value = eventExperience,
+                                        value = state.addEventDialog.experience,
                                         onValueChange = {},
-                                        label = { Text(
-                                            "Experience Level",
-                                            color = Color(0xFFAAAAAA)
-                                        )},
+                                        label = { Text("Experience Level", color = Color(0xFFAAAAAA)) },
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { expandedExperienceMenu = true },
+                                            .clickable {
+                                                viewModel.handleIntent(SportsListIntent.ToggleExperienceDropdown)
+                                            },
                                         readOnly = true,
                                         colors = OutlinedTextFieldDefaults.colors(
                                             disabledTextColor = Color.White,
@@ -362,33 +342,32 @@ fun SportsListScreen(
                                         enabled = false
                                     )
                                     DropdownMenu(
-                                        expanded = expandedExperienceMenu,
-                                        onDismissRequest = { expandedExperienceMenu = false },
+                                        expanded = state.addEventDialog.isExperienceDropdownOpen,
+                                        onDismissRequest = {
+                                            viewModel.handleIntent(SportsListIntent.ToggleExperienceDropdown)
+                                        },
                                         modifier = Modifier.background(Color(0xFF3C3C3E))
                                     ) {
-                                        listOf("Beginner", "Intermediate", "Advanced", "Expert").forEach { experienceLevel ->
+                                        listOf("Beginner", "Intermediate", "Advanced", "Expert").forEach { level ->
                                             DropdownMenuItem(
-                                                text = { Text(
-                                                    experienceLevel,
-                                                    color = Color.White
-                                                ) },
+                                                text = { Text(level, color = Color.White) },
                                                 onClick = {
-                                                    eventExperience = experienceLevel
-                                                    expandedExperienceMenu = false
+                                                    viewModel.handleIntent(
+                                                        SportsListIntent.UpdateEventExperience(level)
+                                                    )
+                                                    viewModel.handleIntent(SportsListIntent.ToggleExperienceDropdown)
                                                 }
                                             )
                                         }
                                     }
                                 }
 
-                                // Host
                                 OutlinedTextField(
-                                    value = eventHost,
-                                    onValueChange = { eventHost = it },
-                                    label = { Text(
-                                        "Host Name",
-                                        color = Color(0xFFAAAAAA)
-                                    )},
+                                    value = state.addEventDialog.host,
+                                    onValueChange = {
+                                        viewModel.handleIntent(SportsListIntent.UpdateEventHost(it))
+                                    },
+                                    label = { Text("Host Name", color = Color(0xFFAAAAAA)) },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -402,77 +381,29 @@ fun SportsListScreen(
                         },
                         confirmButton = {
                             TextButton(onClick = {
-                                if (eventTitle.isNotEmpty() &&
-                                    selectedSport != null &&
-                                    eventLocation.isNotEmpty() &&
-                                    selectedDate != null &&
-                                    selectedTime != null &&
-                                    eventExperience.isNotEmpty() &&
-                                    eventHost.isNotEmpty())
-                                {
-                                    val sportEvent = SportEvent(
-                                        title = eventTitle,
-                                        sports = selectedSport!!,
-                                        location = eventLocation,
-                                        date = selectedDate!!,
-                                        time = selectedTime!!,
-                                        experience = eventExperience,
-                                        host = eventHost
-                                    )
-                                    viewModel.addSportEvent(sportEvent)
-
-                                    eventTitle = ""
-                                    selectedSport = null
-                                    eventLocation = ""
-                                    selectedDate = null
-                                    selectedTime = null
-                                    eventExperience = ""
-                                    eventHost = ""
-
-                                    showAddSportEventFilter = false
-                                }
-                                else{
-                                    Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-                                }
+                                viewModel.handleIntent(SportsListIntent.AddSportEvent)
                             }) {
-                                Text(
-                                    "Add",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Add", color = Color(0xFF0A84FF))
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = {
-                                eventTitle = ""
-                                selectedSport = null
-                                eventLocation = ""
-                                selectedDate = null
-                                selectedTime = null
-                                eventExperience = ""
-                                eventHost = ""
-
-                                showAddSportEventFilter = false
+                                viewModel.handleIntent(SportsListIntent.CloseAddEventDialog)
                             }) {
-                                Text(
-                                    "Close",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Close", color = Color(0xFF0A84FF))
                             }
                         },
                         containerColor = Color(0xFF3C3C3E)
                     )
                 }
-                if (showLocationFilter){
-
-                }
-                if (showDateFilter){
+                if (state.filters.isLocationDialogOpen){}
+                if (state.filters.isDateDialogOpen) {
                     AlertDialog(
-                        onDismissRequest = { showDateFilter = false },
+                        onDismissRequest = {
+                            viewModel.handleIntent(SportsListIntent.CloseDateFilter)
+                        },
                         title = {
-                            Text(
-                                text = "Filter by Date",
-                                color = Color.White
-                            )
+                            Text(text = "Filter by Date", color = Color.White)
                         },
                         text = {
                             Column(
@@ -482,20 +413,14 @@ fun SportsListScreen(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 OutlinedTextField(
-                                    value = selectedDateFilter?.let { dateFormatter.format(it) } ?: "",
+                                    value = state.filters.selectedDate?.let { dateFormatter.format(it) } ?: "",
                                     onValueChange = {},
-                                    label = {
-                                        Text(
-                                            "Select Date",
-                                            color = Color(0xFFAAAAAA)
-                                        )
-                                    },
+                                    label = { Text("Select Date", color = Color(0xFFAAAAAA)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable{
-                                            showDateFilter = false
-                                            isFilteringDate = true
-                                            showDatePicker = true
+                                        .clickable {
+                                            viewModel.handleIntent(SportsListIntent.CloseDateFilter)
+                                            viewModel.handleIntent(SportsListIntent.OpenDateFilter)
                                         },
                                     readOnly = true,
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -508,12 +433,7 @@ fun SportsListScreen(
                                         Icon(
                                             painter = painterResource(id = R.drawable.calendar),
                                             contentDescription = "",
-                                            tint = Color(0xFFAAAAAA),
-                                            modifier = Modifier.clickable {
-                                                showDateFilter = false
-                                                isFilteringDate = true
-                                                showDatePicker = true
-                                            }
+                                            tint = Color(0xFFAAAAAA)
                                         )
                                     }
                                 )
@@ -522,118 +442,112 @@ fun SportsListScreen(
                         confirmButton = {
                             TextButton(
                                 onClick = {
-                                    selectedDateFilter?.let { date ->
-                                        viewModel.setDateFilter(date)
-                                    }
-                                    showDateFilter = false
+                                    viewModel.handleIntent(SportsListIntent.CloseDateFilter)
                                 },
-                                enabled = selectedDateFilter != null
+                                enabled = state.filters.selectedDate != null
                             ) {
                                 Text(
                                     "Apply",
-                                    color = if (selectedDateFilter != null) Color(0xFF0A84FF) else Color(0xFF666666)
+                                    color = if (state.filters.selectedDate != null)
+                                        Color(0xFF0A84FF) else Color(0xFF666666)
                                 )
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = {
-                                selectedDateFilter = null
-                                viewModel.clearDateFilter()
-                                showDateFilter = false
+                                viewModel.handleIntent(SportsListIntent.ClearDateFilter)
+                                viewModel.handleIntent(SportsListIntent.CloseDateFilter)
                             }) {
-                                Text(
-                                    "Clear",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Clear", color = Color(0xFF0A84FF))
                             }
                         },
                         containerColor = Color(0xFF2C2C2E)
                     )
                 }
-                if (showExperienceFilter) {
+                if (state.filters.isExperienceDialogOpen) {
                     AlertDialog(
-                        onDismissRequest = { showExperienceFilter = false },
+                        onDismissRequest = {
+                            viewModel.handleIntent(SportsListIntent.CloseExperienceFilter)
+                        },
                         title = {
-                            Text(
-                                text = "Experience Level",
-                                color = Color.White
-                            )
+                            Text(text = "Experience Level", color = Color.White)
                         },
                         text = {
                             Column {
                                 ExperienceFilterItem(
                                     "Beginner",
-                                    isSelected = selectedExperienceFilter == "Beginner",
+                                    isSelected = state.filters.selectedExperience == "Beginner",
                                     onItemClick = {
-                                        selectedExperienceFilter = "Beginner"
+                                        viewModel.handleIntent(
+                                            SportsListIntent.SetExperienceFilter("Beginner")
+                                        )
                                     }
                                 )
                                 ExperienceFilterItem(
                                     "Intermediate",
-                                    isSelected = selectedExperienceFilter == "Intermediate",
+                                    isSelected = state.filters.selectedExperience == "Intermediate",
                                     onItemClick = {
-                                        selectedExperienceFilter = "Intermediate"
+                                        viewModel.handleIntent(
+                                            SportsListIntent.SetExperienceFilter("Intermediate")
+                                        )
                                     }
                                 )
                                 ExperienceFilterItem(
                                     "Advanced",
-                                    isSelected = selectedExperienceFilter == "Advanced",
+                                    isSelected = state.filters.selectedExperience == "Advanced",
                                     onItemClick = {
-                                        selectedExperienceFilter = "Advanced"
+                                        viewModel.handleIntent(
+                                            SportsListIntent.SetExperienceFilter("Advanced")
+                                        )
                                     }
                                 )
                                 ExperienceFilterItem(
                                     "Expert",
-                                    isSelected = selectedExperienceFilter == "Expert",
+                                    isSelected = state.filters.selectedExperience == "Expert",
                                     onItemClick = {
-                                        selectedExperienceFilter = "Expert"
+                                        viewModel.handleIntent(
+                                            SportsListIntent.SetExperienceFilter("Expert")
+                                        )
                                     }
                                 )
                             }
                         },
                         confirmButton = {
                             TextButton(onClick = {
-                                viewModel.setExperienceFilter(selectedExperienceFilter)
-                                showExperienceFilter = false
+                                viewModel.handleIntent(SportsListIntent.CloseExperienceFilter)
                             }) {
-                                Text(
-                                    "Apply",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Apply", color = Color(0xFF0A84FF))
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = {
-                                selectedExperienceFilter = ""
-                                viewModel.clearExperienceFilter()
-                                showExperienceFilter = false
+                                viewModel.handleIntent(SportsListIntent.ClearExperienceFilter)
+                                viewModel.handleIntent(SportsListIntent.CloseExperienceFilter)
                             }) {
-                                Text(
-                                    "Clear",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Clear", color = Color(0xFF0A84FF))
                             }
                         },
                         containerColor = Color(0xFF2C2C2E)
                     )
                 }
-                if (showSportFilter) {
+                if (state.filters.isSportDialogOpen) {
                     AlertDialog(
-                        onDismissRequest = { showSportFilter = false },
+                        onDismissRequest = {
+                            viewModel.handleIntent(SportsListIntent.CloseSportFilter)
+                        },
                         title = {
-                            Text(
-                                text = "Sport",
-                                color = Color.White
-                            )
+                            Text(text = "Sport", color = Color.White)
                         },
                         text = {
                             Column {
                                 Sports.entries.forEach { sport ->
                                     SportFilterItem(
                                         sport = sport.displayName,
-                                        isSelected = selectedSportFilter == sport.displayName,
+                                        isSelected = state.filters.selectedSport == sport.displayName,
                                         onItemClick = {
-                                            selectedSportFilter = sport.displayName
+                                            viewModel.handleIntent(
+                                                SportsListIntent.SetSportFilter(sport.displayName)
+                                            )
                                         }
                                     )
                                 }
@@ -641,25 +555,17 @@ fun SportsListScreen(
                         },
                         confirmButton = {
                             TextButton(onClick = {
-                                viewModel.setSportsFilter(selectedSportFilter)
-                                showSportFilter = false
+                                viewModel.handleIntent(SportsListIntent.CloseSportFilter)
                             }) {
-                                Text(
-                                    "Apply",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Apply", color = Color(0xFF0A84FF))
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = {
-                                selectedSportFilter = ""
-                                viewModel.clearSportFilter()
-                                showSportFilter = false
+                                viewModel.handleIntent(SportsListIntent.ClearSportFilter)
+                                viewModel.handleIntent(SportsListIntent.CloseSportFilter)
                             }) {
-                                Text(
-                                    "Clear",
-                                    color = Color(0xFF0A84FF)
-                                )
+                                Text("Clear", color = Color(0xFF0A84FF))
                             }
                         },
                         containerColor = Color(0xFF2C2C2E)
@@ -705,7 +611,7 @@ fun SportsListScreen(
                                 shape = RoundedCornerShape(22.dp)
                             )
                             .padding(10.dp)
-                            .clickable{showAddSportEventFilter = !showAddSportEventFilter},
+                            .clickable{ viewModel.handleIntent(SportsListIntent.OpenAddEventDialog) },
                         contentAlignment = Alignment.Center
                     ){
                         Icon(
@@ -726,33 +632,33 @@ fun SportsListScreen(
                     FilterItem(
                         "Location",
                         R.drawable.location,
-                        isActive = false,
+                        isActive = state.filters.selectedLocation != null,
                         onFilterClick = {
-                            showLocationFilter = !showLocationFilter
+                            viewModel.handleIntent(SportsListIntent.OpenLocationFilter)
                         }
                     )
                     FilterItem(
                         "Date",
                         R.drawable.calendar,
-                        isActive = selectedDateFilter != null,
+                        isActive = state.filters.selectedDate != null,
                         onFilterClick = {
-                            showDateFilter = !showDateFilter
+                            viewModel.handleIntent(SportsListIntent.OpenDateFilter)
                         }
                     )
                     FilterItem(
                         "Experience",
                         R.drawable.volume,
-                        isActive = selectedExperienceFilter.isNotEmpty(),
+                        isActive = state.filters.selectedExperience != null,
                         onFilterClick = {
-                            showExperienceFilter = !showExperienceFilter
+                            viewModel.handleIntent(SportsListIntent.OpenExperienceFilter)
                         }
                     )
                     FilterItem(
                         "Sport",
                         R.drawable.sports,
-                        isActive = selectedSportFilter.isNotEmpty(),
+                        isActive = state.filters.selectedSport != null,
                         onFilterClick = {
-                            showSportFilter = !showExperienceFilter
+                            viewModel.handleIntent(SportsListIntent.OpenSportFilter)
                         }
                     )
                 }
@@ -763,58 +669,21 @@ fun SportsListScreen(
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
-                when(sportEventsList){
-                    is UiState.Success ->{
-                        sportEventsList.data?.let { listOfSportEvents ->
-                            if (listOfSportEvents.isEmpty()){
-                                item {
-                                    Box(
-                                        modifier = Modifier.fillParentMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ){
-                                        Text(
-                                            text = "No events in this location",
-                                            modifier = Modifier.align(Alignment.Center),
-                                            style = MaterialTheme.typography.titleLarge,
-                                            fontSize = 20.sp,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-                            else{
-                                items(
-                                    items = listOfSportEvents,
-                                    key = {it.id}
-                                ){ sportEvent ->
-                                    SportsListItem(
-                                        event =  sportEvent,
-                                        onItemClick = {
-                                            viewModel.joinSportEvent(sportEvent)
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.height(15.dp))
-                                }
-                            }
-                        }
-                    }
-                    is UiState.Error -> {
+                when {
+                    state.errorMessage != null -> {
                         item {
-                            sportEventsList.errorMessage?.let {
-                                Box(
-                                    modifier = Modifier.fillParentMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ){
-                                    Text(
-                                        text = it,
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                }
+                            Box(
+                                modifier = Modifier.fillParentMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ){
+                                Text(
+                                    text = state.errorMessage!!,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
                             }
                         }
-                        Toast.makeText(context, "${sportEventsList.errorMessage}", Toast.LENGTH_SHORT).show()
                     }
-                    is UiState.Loading ->{
+                    state.isLoading -> {
                         item {
                             Box(
                                 modifier = Modifier.fillParentMaxSize(),
@@ -824,35 +693,55 @@ fun SportsListScreen(
                             }
                         }
                     }
+                    state.events.isEmpty() ->{
+                        item {
+                            Box(
+                                modifier = Modifier.fillParentMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No events in this location",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontSize = 20.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                    else -> {
+                        items(
+                            items = state.events,
+                            key = { it.id }
+                        ) { sportEvent ->
+                            SportsListItem(
+                                event = sportEvent,
+                                onItemClick = {
+                                    viewModel.handleIntent(SportsListIntent.JoinEvent(sportEvent))
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(15.dp))
+                        }
+                    }
                 }
             }
         }
     }
 
-    LaunchedEffect(true) {
-        viewModel.addSportEvent.collectLatest { response ->
-            when(response){
-                is UiState.Success ->{
-                    Toast.makeText(context, "${response.data}", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect){
+                is SportsListEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
-                is UiState.Error -> {
-                    Toast.makeText(context, "${response.errorMessage}", Toast.LENGTH_SHORT).show()
+                is SportsListEffect.ShowError -> {
+                    Toast.makeText(context, effect.error, Toast.LENGTH_SHORT).show()
                 }
-                is UiState.Loading -> {}
-            }
-        }
-    }
-
-    LaunchedEffect(true) {
-        viewModel.joinSportEvent.collectLatest { response ->
-            when(response){
-                is UiState.Success ->{
-                    Toast.makeText(context, "${response.data}", Toast.LENGTH_SHORT).show()
+                is SportsListEffect.EventAddedSuccessfully -> {
+                    Toast.makeText(context, "Event added successfully", Toast.LENGTH_SHORT).show()
                 }
-                is UiState.Error -> {
-                    Toast.makeText(context, "${response.errorMessage}", Toast.LENGTH_SHORT).show()
+                is SportsListEffect.EventJoinedSuccessfully -> {
+                    Toast.makeText(context, "Event joined successfully", Toast.LENGTH_SHORT).show()
                 }
-                is UiState.Loading -> {}
             }
         }
     }
