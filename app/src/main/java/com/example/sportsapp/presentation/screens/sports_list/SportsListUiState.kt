@@ -16,10 +16,17 @@ data class FilterState(
     val selectedSport: String? = null,
     val selectedDate: Date? = null,
     val selectedLocation: String? = null,
+
+    val tempExperience: String? = null,
+    val tempSport: String? = null,
+    val tempDate: Date? = null,
+    val tempLocation: String? = null,
+
     val isExperienceDialogOpen: Boolean = false,
     val isSportDialogOpen: Boolean = false,
     val isDateDialogOpen: Boolean = false,
-    val isLocationDialogOpen: Boolean = false
+    val isLocationDialogOpen: Boolean = false,
+    val isFilterDatePickerOpen: Boolean = false
 )
 
 data class AddEventDialogState(
@@ -46,21 +53,33 @@ sealed class SportsListIntent {
     data class SetSportFilter(val sport: String) : SportsListIntent()
     data class SetDateFilter(val date: Date) : SportsListIntent()
     data class SetLocationFilter(val location: String) : SportsListIntent()
+
     data object ClearExperienceFilter : SportsListIntent()
     data object ClearSportFilter : SportsListIntent()
     data object ClearDateFilter : SportsListIntent()
     data object ClearLocationFilter : SportsListIntent()
+
+    data object ApplyExperienceFilter : SportsListIntent()
+    data object ApplySportFilter : SportsListIntent()
+    data object ApplyDateFilter : SportsListIntent()
+    data object ApplyLocationFilter : SportsListIntent()
+
     data object OpenExperienceFilter : SportsListIntent()
     data object OpenSportFilter : SportsListIntent()
     data object OpenDateFilter : SportsListIntent()
     data object OpenLocationFilter : SportsListIntent()
+    data object OpenFilterDatePicker : SportsListIntent()
+
     data object CloseExperienceFilter : SportsListIntent()
     data object CloseSportFilter : SportsListIntent()
     data object CloseDateFilter : SportsListIntent()
     data object CloseLocationFilter : SportsListIntent()
+    data object CloseFilterDatePicker : SportsListIntent()
+
 
     data object OpenAddEventDialog : SportsListIntent()
     data object CloseAddEventDialog : SportsListIntent()
+
     data class UpdateEventTitle(val title: String) : SportsListIntent()
     data class UpdateEventSport(val sport: String) : SportsListIntent()
     data class UpdateEventLocation(val location: String) : SportsListIntent()
@@ -68,8 +87,10 @@ sealed class SportsListIntent {
     data class UpdateEventTime(val time: java.sql.Time) : SportsListIntent()
     data class UpdateEventExperience(val experience: String) : SportsListIntent()
     data class UpdateEventHost(val host: String) : SportsListIntent()
+
     data object ToggleSportDropdown : SportsListIntent()
     data object ToggleExperienceDropdown : SportsListIntent()
+
     data object OpenDatePicker : SportsListIntent()
     data object CloseDatePicker : SportsListIntent()
     data object OpenTimePicker : SportsListIntent()

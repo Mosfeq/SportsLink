@@ -101,13 +101,13 @@ fun SportsListScreen(
                 modifier = Modifier
                     .padding(20.dp)
             ){
-                if (state.addEventDialog.isDatePickerOpen || state.filters.isDateDialogOpen) {
+                if (state.addEventDialog.isDatePickerOpen || state.filters.isFilterDatePickerOpen) {
                     DatePickerDialog(
                         onDismissRequest = {
                             if (state.addEventDialog.isDatePickerOpen) {
                                 viewModel.handleIntent(SportsListIntent.CloseDatePicker)
                             } else {
-                                viewModel.handleIntent(SportsListIntent.CloseDateFilter)
+                                viewModel.handleIntent(SportsListIntent.CloseFilterDatePicker)
                             }
                         },
                         confirmButton = {
@@ -123,7 +123,7 @@ fun SportsListScreen(
                                             viewModel.handleIntent(
                                                 SportsListIntent.SetDateFilter(Date(millis))
                                             )
-                                            viewModel.handleIntent(SportsListIntent.CloseDateFilter)
+                                            viewModel.handleIntent(SportsListIntent.CloseFilterDatePicker)
                                         }
                                     }
                                 }
@@ -136,7 +136,7 @@ fun SportsListScreen(
                                 if (state.addEventDialog.isDatePickerOpen) {
                                     viewModel.handleIntent(SportsListIntent.CloseDatePicker)
                                 } else {
-                                    viewModel.handleIntent(SportsListIntent.CloseDateFilter)
+                                    viewModel.handleIntent(SportsListIntent.CloseFilterDatePicker)
                                 }
                             }) {
                                 Text("Cancel")
@@ -413,14 +413,13 @@ fun SportsListScreen(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 OutlinedTextField(
-                                    value = state.filters.selectedDate?.let { dateFormatter.format(it) } ?: "",
+                                    value = state.filters.tempDate?.let { dateFormatter.format(it) } ?: "",
                                     onValueChange = {},
                                     label = { Text("Select Date", color = Color(0xFFAAAAAA)) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            viewModel.handleIntent(SportsListIntent.CloseDateFilter)
-                                            viewModel.handleIntent(SportsListIntent.OpenDateFilter)
+                                            viewModel.handleIntent(SportsListIntent.OpenFilterDatePicker)
                                         },
                                     readOnly = true,
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -433,7 +432,10 @@ fun SportsListScreen(
                                         Icon(
                                             painter = painterResource(id = R.drawable.calendar),
                                             contentDescription = "",
-                                            tint = Color(0xFFAAAAAA)
+                                            tint = Color(0xFFAAAAAA),
+                                            modifier = Modifier.clickable{
+                                                viewModel.handleIntent(SportsListIntent.OpenFilterDatePicker)
+                                            }
                                         )
                                     }
                                 )
@@ -442,13 +444,14 @@ fun SportsListScreen(
                         confirmButton = {
                             TextButton(
                                 onClick = {
+                                    viewModel.handleIntent(SportsListIntent.ApplyDateFilter)
                                     viewModel.handleIntent(SportsListIntent.CloseDateFilter)
                                 },
-                                enabled = state.filters.selectedDate != null
+                                enabled = state.filters.tempDate != null
                             ) {
                                 Text(
                                     "Apply",
-                                    color = if (state.filters.selectedDate != null)
+                                    color = if (state.filters.tempDate != null)
                                         Color(0xFF0A84FF) else Color(0xFF666666)
                                 )
                             }
@@ -476,7 +479,7 @@ fun SportsListScreen(
                             Column {
                                 ExperienceFilterItem(
                                     "Beginner",
-                                    isSelected = state.filters.selectedExperience == "Beginner",
+                                    isSelected = state.filters.tempExperience == "Beginner",
                                     onItemClick = {
                                         viewModel.handleIntent(
                                             SportsListIntent.SetExperienceFilter("Beginner")
@@ -485,7 +488,7 @@ fun SportsListScreen(
                                 )
                                 ExperienceFilterItem(
                                     "Intermediate",
-                                    isSelected = state.filters.selectedExperience == "Intermediate",
+                                    isSelected = state.filters.tempExperience == "Intermediate",
                                     onItemClick = {
                                         viewModel.handleIntent(
                                             SportsListIntent.SetExperienceFilter("Intermediate")
@@ -494,7 +497,7 @@ fun SportsListScreen(
                                 )
                                 ExperienceFilterItem(
                                     "Advanced",
-                                    isSelected = state.filters.selectedExperience == "Advanced",
+                                    isSelected = state.filters.tempExperience == "Advanced",
                                     onItemClick = {
                                         viewModel.handleIntent(
                                             SportsListIntent.SetExperienceFilter("Advanced")
@@ -503,7 +506,7 @@ fun SportsListScreen(
                                 )
                                 ExperienceFilterItem(
                                     "Expert",
-                                    isSelected = state.filters.selectedExperience == "Expert",
+                                    isSelected = state.filters.tempExperience == "Expert",
                                     onItemClick = {
                                         viewModel.handleIntent(
                                             SportsListIntent.SetExperienceFilter("Expert")
@@ -514,6 +517,7 @@ fun SportsListScreen(
                         },
                         confirmButton = {
                             TextButton(onClick = {
+                                viewModel.handleIntent(SportsListIntent.ApplyExperienceFilter)
                                 viewModel.handleIntent(SportsListIntent.CloseExperienceFilter)
                             }) {
                                 Text("Apply", color = Color(0xFF0A84FF))
@@ -543,7 +547,7 @@ fun SportsListScreen(
                                 Sports.entries.forEach { sport ->
                                     SportFilterItem(
                                         sport = sport.displayName,
-                                        isSelected = state.filters.selectedSport == sport.displayName,
+                                        isSelected = state.filters.tempSport == sport.displayName,
                                         onItemClick = {
                                             viewModel.handleIntent(
                                                 SportsListIntent.SetSportFilter(sport.displayName)
@@ -555,6 +559,7 @@ fun SportsListScreen(
                         },
                         confirmButton = {
                             TextButton(onClick = {
+                                viewModel.handleIntent(SportsListIntent.ApplySportFilter)
                                 viewModel.handleIntent(SportsListIntent.CloseSportFilter)
                             }) {
                                 Text("Apply", color = Color(0xFF0A84FF))

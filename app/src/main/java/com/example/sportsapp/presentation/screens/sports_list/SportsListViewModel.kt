@@ -49,15 +49,22 @@ class SportsListViewModel @Inject constructor(
             is SportsListIntent.ClearSportFilter -> clearSportFilter()
             is SportsListIntent.ClearDateFilter -> clearDateFilter()
             is SportsListIntent.ClearLocationFilter -> {}
+            is SportsListIntent.ApplyExperienceFilter -> applyExperienceFilter()
+            is SportsListIntent.ApplySportFilter -> applySportFilter()
+            is SportsListIntent.ApplyDateFilter -> applyDateFilter()
+            is SportsListIntent.ApplyLocationFilter -> {}
 
             is SportsListIntent.OpenExperienceFilter -> openExperienceFilter()
             is SportsListIntent.OpenSportFilter -> openSportFilter()
             is SportsListIntent.OpenDateFilter -> openDateFilter()
             is SportsListIntent.OpenLocationFilter -> {}
+            is SportsListIntent.OpenFilterDatePicker -> openFilterDatePicker()
+
             is SportsListIntent.CloseExperienceFilter -> closeExperienceFilter()
             is SportsListIntent.CloseSportFilter -> closeSportFilter()
             is SportsListIntent.CloseDateFilter -> closeDateFilter()
             is SportsListIntent.CloseLocationFilter -> {}
+            is SportsListIntent.CloseFilterDatePicker -> closeFilterDatePicker()
 
             is SportsListIntent.OpenAddEventDialog -> openAddEventDialog()
             is SportsListIntent.CloseAddEventDialog -> closeAddEventDialog()
@@ -139,7 +146,6 @@ class SportsListViewModel @Inject constructor(
                 when(response){
                     is UiState.Success -> {
                         _effect.send(SportsListEffect.EventAddedSuccessfully)
-//                        _effect.send(SportsListEffect.ShowToast(response.data ?: "Event Added"))
                         closeAddEventDialog()
                         getSportsEventsList()
                     }
@@ -181,35 +187,33 @@ class SportsListViewModel @Inject constructor(
     fun setExperienceFilter(experienceLevel: String){
         _state.update {
             it.copy(
-                filters = it.filters.copy(selectedExperience = experienceLevel)
+                filters = it.filters.copy(tempExperience = experienceLevel)
             )
         }
-        applyFilters()
     }
 
     fun setSportsFilter(sport: String){
         _state.update {
             it.copy(
-                filters = it.filters.copy(selectedSport = sport)
+                filters = it.filters.copy(tempSport = sport)
             )
         }
-        applyFilters()
     }
 
     fun setDateFilter(date: Date){
         _state.update {
             it.copy(
-                filters = it.filters.copy(selectedDate = date)
+                filters = it.filters.copy(tempDate = date)
             )
         }
-        applyFilters()
     }
 
     fun clearExperienceFilter() {
         _state.update {
             it.copy(
                 filters = it.filters.copy(
-                    selectedExperience = null
+                    selectedExperience = null,
+                    tempExperience = null
                 )
             )
         }
@@ -219,7 +223,10 @@ class SportsListViewModel @Inject constructor(
     private fun clearSportFilter() {
         _state.update {
             it.copy(
-                filters = it.filters.copy(selectedSport = null)
+                filters = it.filters.copy(
+                    selectedSport = null,
+                    tempSport = null
+                )
             )
         }
         applyFilters()
@@ -228,7 +235,43 @@ class SportsListViewModel @Inject constructor(
     private fun clearDateFilter() {
         _state.update {
             it.copy(
-                filters = it.filters.copy(selectedDate = null)
+                filters = it.filters.copy(
+                    selectedDate = null,
+                    tempDate = null
+                )
+            )
+        }
+        applyFilters()
+    }
+
+    private fun applyExperienceFilter(){
+        _state.update {
+            it.copy(
+                filters = it.filters.copy(
+                    selectedExperience = it.filters.tempExperience
+                )
+            )
+        }
+        applyFilters()
+    }
+
+    private fun applySportFilter(){
+        _state.update {
+            it.copy(
+                filters = it.filters.copy(
+                    selectedSport = it.filters.tempSport
+                )
+            )
+        }
+        applyFilters()
+    }
+
+    private fun applyDateFilter(){
+        _state.update {
+            it.copy(
+                filters = it.filters.copy(
+                    selectedDate = it.filters.tempDate
+                )
             )
         }
         applyFilters()
@@ -237,7 +280,10 @@ class SportsListViewModel @Inject constructor(
     private fun openExperienceFilter() {
         _state.update {
             it.copy(
-                filters = it.filters.copy(isExperienceDialogOpen = true)
+                filters = it.filters.copy(
+                    isExperienceDialogOpen = true,
+                    tempExperience = it.filters.selectedExperience
+                )
             )
         }
     }
@@ -245,7 +291,10 @@ class SportsListViewModel @Inject constructor(
     private fun openSportFilter() {
         _state.update {
             it.copy(
-                filters = it.filters.copy(isSportDialogOpen = true)
+                filters = it.filters.copy(
+                    isSportDialogOpen = true,
+                    tempSport = it.filters.selectedSport
+                )
             )
         }
     }
@@ -253,7 +302,19 @@ class SportsListViewModel @Inject constructor(
     private fun openDateFilter() {
         _state.update {
             it.copy(
-                filters = it.filters.copy(isDateDialogOpen = true)
+                filters = it.filters.copy(
+                    isDateDialogOpen = true,
+                    isFilterDatePickerOpen = false,
+                    tempDate = it.filters.selectedDate
+                )
+            )
+        }
+    }
+
+    private fun openFilterDatePicker(){
+        _state.update {
+            it.copy(
+                filters = it.filters.copy(isFilterDatePickerOpen = true)
             )
         }
     }
@@ -277,7 +338,18 @@ class SportsListViewModel @Inject constructor(
     private fun closeDateFilter() {
         _state.update {
             it.copy(
-                filters = it.filters.copy(isDateDialogOpen = false)
+                filters = it.filters.copy(
+                    isDateDialogOpen = false,
+                    isFilterDatePickerOpen = false
+                )
+            )
+        }
+    }
+
+    private fun closeFilterDatePicker() {
+        _state.update {
+            it.copy(
+                filters = it.filters.copy(isFilterDatePickerOpen = false)
             )
         }
     }
