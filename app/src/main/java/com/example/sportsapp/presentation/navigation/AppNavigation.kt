@@ -111,7 +111,7 @@ fun AppNavigation(){
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screens.SportsListScreen.route,
+            startDestination = Screens.SignInScreen.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(route = Screens.RegisterScreen.route){

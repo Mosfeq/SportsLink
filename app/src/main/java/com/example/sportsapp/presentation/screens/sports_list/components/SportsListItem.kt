@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -23,7 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,49 +57,158 @@ fun SportsListItem(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(
-                elevation = 2.dp,
-                shape = RoundedCornerShape(10.dp)
+                elevation = 3.dp,
+                shape = RoundedCornerShape(16.dp)
             )
             .background(
                 color = Color.White,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = Color(0xFFE5E5EA),
-                shape = RoundedCornerShape(10.dp)
+                shape = RoundedCornerShape(16.dp)
             )
             .clickable{onItemClick(event)}
             .padding(16.dp)
     ){
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
             modifier = Modifier.fillMaxWidth()
-        ){
-            Text(
-                text = event.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Medium,
-                fontSize = 20.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = Color(0xFF1C1C1E),
+        ) {
+            Column(
                 modifier = Modifier.weight(1f)
-            )
+            ) {
+                Text(
+                    text = event.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color(0xFF1C1C1E),
+                    lineHeight = 26.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = getExperienceColor(event.experience).copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = event.experience,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = getExperienceColor(event.experience)
+                        )
+                    }
+                    if (event.numberOfPlayers.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier
+                                .background(
+                                    color = Color(0xFF007AFF).copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = Color(0xFF007AFF),
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = event.numberOfPlayers,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF007AFF)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+
             Box(
                 modifier = Modifier
-                    .background(
-                        color = Color(0xFF007AFF),
-                        shape = RoundedCornerShape(10.dp)
+                    .background(Color.White)
+                    .border(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF007AFF),
+                                Color(0xFF5856D6),
+                                Color(0xFFFF2D55),
+                                Color(0xFFFF9500)
+                            )
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        width = 2.dp
                     )
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ){
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
                 Text(
                     text = event.sports,
                     style = MaterialTheme.typography.labelMedium,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1C1C1E)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFE5E5EA))
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        color = Color(0xFFFF9500).copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.calendar),
+                    contentDescription = null,
+                    tint = Color(0xFFFF9500),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = dateFormatter.format(event.date),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1C1C1E)
+                )
+                Text(
+                    text = timeFormatter.format(event.time),
+                    style = MaterialTheme.typography.bodySmall,
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White
+                    color = Color(0xFF8E8E93)
                 )
             }
         }
@@ -103,100 +216,85 @@ fun SportsListItem(
         Spacer(modifier = Modifier.height(12.dp))
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = null,
-                tint = Color(0xFF8E8E93),
-                modifier = Modifier.size(16.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        color = Color(0xFFFF3B30).copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = Color(0xFFFF3B30),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
             event.location?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 14.sp,
-                    color = Color(0xFF3C3C43),
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF1C1C1E),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFE5E5EA))
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
-            Icon(
-                painter = painterResource(R.drawable.calendar),
-                contentDescription = null,
-                tint = Color(0xFF8E8E93),
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                text = dateFormatter.format(event.date),
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = Color(0xFF3C3C43)
-            )
-            Text(
-                text = "•",
-                color = Color(0xFF8E8E93)
-            )
-            Text(
-                text = timeFormatter.format(event.time),
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = Color(0xFF3C3C43)
-            )
-
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = null,
-                tint = Color(0xFF8E8E93),
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                text = event.experience,
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = Color(0xFF3C3C43)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = Color(0xFF8E8E93),
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                text = "Hosted by ${event.host}",
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = Color(0xFF3C3C43)
-            )
-        }
-
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "Hosted by",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 11.sp,
+                    color = Color(0xFF8E8E93)
+                )
+                Text(
+                    text = event.host,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1C1C1E)
+                )
+            }
+            }
     }
+}
 
+@Composable
+private fun getExperienceColor(experience: String): Color {
+    return when (experience) {
+        "Beginner" -> Color(0xFF34C759)
+        "Intermediate" -> Color(0xFF007AFF)
+        "Advanced" -> Color(0xFFFF9500)
+        "Expert" -> Color(0xFFFF3B30)
+        else -> Color(0xFF8E8E93)
+    }
 }
 
 @Preview
@@ -205,18 +303,34 @@ private fun SportsItemPreview(){
     SportsAppTheme {
         Column(
             modifier = Modifier
-                .background(Color(0xFFF2F2F7))
-                .padding(16.dp)
+                .background(Color(0xFFF8F9FA))
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SportsListItem(
                 event = SportEvent(
-                    title = "Footy Sesh",
-                    sports = Sports.TableTennis,
+                    title = "Weekend Football Match",
+                    sports = Sports.Football.displayName,
                     location = "Queensway, Paddington",
-                    date = Date(),
-                    time = Time(System.currentTimeMillis()),
-                    experience = "Expert",
+                    date = Date().time,
+                    time = Time(System.currentTimeMillis()).time,
+                    experience = "Intermediate",
+                    numberOfPlayers = "10",
                     host = "Mark Joseph"
+                ),
+                onItemClick = {}
+            )
+
+            SportsListItem(
+                event = SportEvent(
+                    title = "Early Morning Tennis",
+                    sports = Sports.Tennis.displayName,
+                    location = "Hyde Park Courts",
+                    date = Date().time,
+                    time = Time(System.currentTimeMillis()).time,
+                    experience = "Expert",
+                    numberOfPlayers = "4",
+                    host = "Sarah Williams"
                 ),
                 onItemClick = {}
             )
