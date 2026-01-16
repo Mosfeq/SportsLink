@@ -54,12 +54,12 @@ class MyEventsViewModel @Inject constructor(
     }
 
     fun getHostedEventsList(){
-        useCases.getSportEventList{ response ->
+        useCases.getHostedSportEventList{ response ->
             viewModelScope.launch {
                 when (response){
                     is UiState.Success ->{
                         response.data?.let { it ->
-                            hostedEvents = it.filter { it.host == "Josh" }
+                            hostedEvents = it
                             updateDisplayedEvents()
                         }
                     }
@@ -141,12 +141,8 @@ class MyEventsViewModel @Inject constructor(
 
     private fun onEventClick(event: SportEvent){
         viewModelScope.launch {
-            _effect.send(MyEventsEffect.NavigateToEventDetail(event))
+            _effect.send(MyEventsEffect.NavigateToEventDetail(event.id))
         }
-    }
-
-    fun refresh(){
-        handleIntent(MyEventsIntent.LoadEvents)
     }
 
 }

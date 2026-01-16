@@ -27,12 +27,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.example.sportsapp.domain.model.SportEvent
+import com.example.sportsapp.presentation.navigation.Screens
 import com.example.sportsapp.presentation.screens.my_events.components.EventItem
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun MyEventsScreen(
+    navController: NavController,
     viewModel: MyEventsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -44,13 +47,8 @@ fun MyEventsScreen(
                 is MyEventsEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
-
                 is MyEventsEffect.NavigateToEventDetail -> {
-                    Toast.makeText(
-                        context,
-                        "Event clicked: ${effect.event.title}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    navController.navigate(Screens.EventDetailScreen.createRoute(effect.eventId))
                 }
             }
         }
@@ -111,13 +109,39 @@ private fun MyEventsContent(
 
             when {
                 state.isLoading -> {
-                    LoadingContent()
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ){
+                        CircularProgressIndicator()
+                    }
                 }
                 state.errorMessage != null -> {
-                    ErrorContent(errorMessage = state.errorMessage)
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = state.errorMessage,
+                            modifier = Modifier.align(Alignment.Center),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
                 state.displayedEvents.isEmpty() -> {
-                    EmptyContent(isShowingHosted = state.isShowingHosted)
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (state.isShowingHosted) "No events hosted" else "No events joined",
+                            modifier = Modifier.align(Alignment.Center),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
                 else -> {
                     EventsList(
@@ -129,47 +153,6 @@ private fun MyEventsContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun LoadingContent(){
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ){
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun ErrorContent(errorMessage: String){
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = errorMessage,
-            modifier = Modifier.align(Alignment.Center),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.error
-        )
-    }
-}
-
-@Composable
-private fun EmptyContent(isShowingHosted: Boolean) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = if (isShowingHosted) "No events hosted" else "No events joined",
-            modifier = Modifier.align(Alignment.Center),
-            style = MaterialTheme.typography.titleLarge,
-            fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.primary
-        )
     }
 }
 

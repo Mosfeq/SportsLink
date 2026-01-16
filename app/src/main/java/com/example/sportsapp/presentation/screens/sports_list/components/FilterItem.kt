@@ -29,38 +29,38 @@ fun FilterItem(
     filterName: String,
     @DrawableRes icon: Int,
     isActive: Boolean = false,
-    onFilterClick: () -> Unit,
+    onFilterClick: () -> Unit
 ){
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .background(
-                color = if (isActive) Color(0xFFa9d1fc) else Color(0xFFedfffe),
-                shape = RoundedCornerShape(8.dp)
+                color = if (isActive) Color(0xFFa9d1fc) else Color.White,
+                shape = RoundedCornerShape(12.dp)
             )
             .border(
                 width = 2.dp,
-                color = if (isActive) Color(0xFF171773) else Color(0xFFedfffe),
-                shape = RoundedCornerShape(8.dp)
+                color = if (isActive) Color(0xFF007AFF) else Color(0xFFE5E5EA),
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable{
                 onFilterClick()
             }
-            .padding(horizontal = 6.dp, vertical = 6.dp)
+            .padding(10.dp)
     ) {
         Icon(
             painter = painterResource(id = icon),
-            tint = Color(0xFF171773),
+            tint = if (isActive) Color(0xFF007AFF) else Color(0xFF3C3C43),
             contentDescription = null,
             modifier = Modifier
-                .size(26.dp)
-                .padding(bottom = 4.dp)
+                .size(24.dp)
+                .padding(bottom = 6.dp)
         )
         Text(
             text = filterName,
             style = MaterialTheme.typography.bodyLarge,
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             color = Color(0xFF3C3C43)
         )
     }
@@ -71,12 +71,14 @@ fun FilterItem(
 private fun FilterItemPreview(){
     Column(
         modifier = Modifier
-            .background(Color(0xFFF2F2F7))
+            .background(Color(0xFFF8F9FA))
             .padding(16.dp)
     ) {
         FilterItem(
             "Location",
-            R.drawable.location
-        ) { }
+            R.drawable.location,
+            isActive = false,
+            onFilterClick = {}
+        )
     }
 }

@@ -13,6 +13,7 @@ data class SportEvent (
     val date: Long = 0L,
     val time: Long = 0L,
     val experience: String = "",
+    val numberOfPlayers: String = "",
     val host: String = ""
 ){
     @get:Exclude

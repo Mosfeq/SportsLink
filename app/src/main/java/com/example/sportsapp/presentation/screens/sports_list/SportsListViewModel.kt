@@ -31,9 +31,27 @@ class SportsListViewModel @Inject constructor(
     val effect = _effect.receiveAsFlow()
 
     private var allEvents = listOf<SportEvent>()
+    private var currentUserName: String = ""
 
     init {
+        loadCurrentUser()
         handleIntent(SportsListIntent.LoadEvents)
+    }
+
+    private fun loadCurrentUser(){
+        useCases.getCurrentUser{ response ->
+            viewModelScope.launch {
+                when (response){
+                    is UiState.Success -> {
+                        response.data?.let { user ->
+                            currentUserName = user.name
+                        }
+                    }
+                    is UiState.Error -> {}
+                    is UiState.Loading -> {}
+                }
+            }
+        }
     }
 
     fun handleIntent(intent: SportsListIntent){
@@ -68,22 +86,25 @@ class SportsListViewModel @Inject constructor(
 
             is SportsListIntent.OpenAddEventDialog -> openAddEventDialog()
             is SportsListIntent.CloseAddEventDialog -> closeAddEventDialog()
+
             is SportsListIntent.UpdateEventTitle -> updateEventTitle(intent.title)
             is SportsListIntent.UpdateEventSport -> updateEventSport(intent.sport)
             is SportsListIntent.UpdateEventLocation -> updateEventLocation(intent.location)
             is SportsListIntent.UpdateEventDate -> updateEventDate(intent.date)
             is SportsListIntent.UpdateEventTime -> updateEventTime(intent.time)
             is SportsListIntent.UpdateEventExperience -> updateEventExperience(intent.experience)
-            is SportsListIntent.UpdateEventHost -> updateEventHost(intent.host)
+            is SportsListIntent.UpdateEventNumberOfPlayers -> updateNumberOfPlayers(intent.numberOfPlayers)
+
             is SportsListIntent.ToggleSportDropdown -> toggleSportDropdown()
             is SportsListIntent.ToggleExperienceDropdown -> toggleExperienceDropdown()
+
             is SportsListIntent.OpenDatePicker -> openDatePicker()
             is SportsListIntent.CloseDatePicker -> closeDatePicker()
             is SportsListIntent.OpenTimePicker -> openTimePicker()
             is SportsListIntent.CloseTimePicker -> closeTimePicker()
-            is SportsListIntent.AddSportEvent -> addSportEvent()
 
-            is SportsListIntent.JoinEvent -> joinSportEvent(intent.event)
+            is SportsListIntent.AddSportEvent -> addSportEvent()
+            is SportsListIntent.OnEventClick -> onEventClick(intent.event)
         }
     }
 
@@ -118,7 +139,8 @@ class SportsListViewModel @Inject constructor(
 
         if (dialog.title.isEmpty() || dialog.sport == null || dialog.location.isEmpty() ||
             dialog.date == null || dialog.time == null || dialog.experience.isEmpty() ||
-            dialog.host.isEmpty()) {
+            dialog.numberOfPlayers.isEmpty())
+        {
             viewModelScope.launch {
                 _effect.send(SportsListEffect.ShowToast("Please fill in all fields"))
             }
@@ -131,14 +153,23 @@ class SportsListViewModel @Inject constructor(
             Sports.entries.find { it.displayName == dialog.sport } ?: Sports.Football
         }
 
+        val players = dialog.numberOfPlayers.toIntOrNull()
+        if (players == null || players <= 0){
+            viewModelScope.launch {
+                _effect.send(SportsListEffect.ShowToast("Invalid Number of Players"))
+            }
+            return
+        }
+
         val sportEvent = SportEvent(
             title = dialog.title,
-            sports = sportEnum,
+            sports = sportEnum.displayName,
             location = dialog.location,
-            date = dialog.date,
-            time = dialog.time,
+            date = dialog.date.time,
+            time = dialog.time.time,
             experience = dialog.experience,
-            host = dialog.host
+            numberOfPlayers = players.toString(),
+            host = currentUserName
         )
 
         useCases.addSportEvent(sportEvent){ response ->
@@ -162,27 +193,11 @@ class SportsListViewModel @Inject constructor(
         }
     }
 
-    private fun joinSportEvent(sportEvent: SportEvent){
-        useCases.joinSportEventUseCase(sportEvent) { response ->
-            viewModelScope.launch(Dispatchers.IO) {
-                when (response) {
-                    is UiState.Success -> {
-                        _effect.send(SportsListEffect.EventJoinedSuccessfully)
-                        _effect.send(SportsListEffect.ShowToast(response.data ?: "Event joined"))
-                    }
-                    is UiState.Error -> {
-                        _effect.send(
-                            SportsListEffect.ShowError(
-                                response.errorMessage ?: "Failed to join event"
-                            )
-                        )
-                    }
-                    is UiState.Loading -> {}
-                }
-            }
+    private fun onEventClick(event: SportEvent){
+        viewModelScope.launch {
+            _effect.send(SportsListEffect.NavigateToEventDetail(event.id))
         }
     }
-
 
     fun setExperienceFilter(experienceLevel: String){
         _state.update {
@@ -453,10 +468,10 @@ class SportsListViewModel @Inject constructor(
         }
     }
 
-    private fun updateEventHost(host: String) {
+    private fun updateNumberOfPlayers(numberOfPlayers: String){
         _state.update {
             it.copy(
-                addEventDialog = it.addEventDialog.copy(host = host)
+                addEventDialog = it.addEventDialog.copy(numberOfPlayers = numberOfPlayers)
             )
         }
     }

@@ -23,6 +23,7 @@ loggingInterceptor = "5.0.0-alpha.16"
 navigationCompose = "2.9.0"
 okhttp = "5.0.0-alpha.16"
 playServicesLocation = "21.0.1"
+firebaseAuth = "24.0.1"
 
 
 [libraries]
@@ -56,6 +57,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 google-play-services-location = {module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation"}
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 
 
 [plugins]

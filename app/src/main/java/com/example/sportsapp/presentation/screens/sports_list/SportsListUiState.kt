@@ -37,14 +37,14 @@ data class AddEventDialogState(
     val date: Date? = null,
     val time: java.sql.Time? = null,
     val experience: String = "",
-    val host: String = "",
+    val numberOfPlayers: String = "",
+
     val isSportDropdownOpen: Boolean = false,
     val isExperienceDropdownOpen: Boolean = false,
     val isDatePickerOpen: Boolean = false,
     val isTimePickerOpen: Boolean = false
 )
 
-// User Intents
 sealed class SportsListIntent {
     data object LoadEvents : SportsListIntent()
     data object RefreshEvents : SportsListIntent()
@@ -86,7 +86,7 @@ sealed class SportsListIntent {
     data class UpdateEventDate(val date: Date) : SportsListIntent()
     data class UpdateEventTime(val time: java.sql.Time) : SportsListIntent()
     data class UpdateEventExperience(val experience: String) : SportsListIntent()
-    data class UpdateEventHost(val host: String) : SportsListIntent()
+    data class UpdateEventNumberOfPlayers(val numberOfPlayers: String) : SportsListIntent()
 
     data object ToggleSportDropdown : SportsListIntent()
     data object ToggleExperienceDropdown : SportsListIntent()
@@ -98,12 +98,13 @@ sealed class SportsListIntent {
 
     data object AddSportEvent : SportsListIntent()
 
-    data class JoinEvent(val event: SportEvent) : SportsListIntent()
+    data class OnEventClick(val event: SportEvent): SportsListIntent()
 }
 
 sealed class SportsListEffect {
     data class ShowToast(val message: String) : SportsListEffect()
     data class ShowError(val error: String) : SportsListEffect()
     data object EventAddedSuccessfully : SportsListEffect()
-    data object EventJoinedSuccessfully : SportsListEffect()
+
+    data class NavigateToEventDetail(val eventId: String): SportsListEffect()
 }

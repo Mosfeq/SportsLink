@@ -28,5 +28,5 @@ val listOfNavItems = listOf(
         unselectedIcon = Icons.Outlined.Home,
         selectedIcon = Icons.Filled.Home,
         route = Screens.MyEventsScreen.route
-    ),
+    )
 )

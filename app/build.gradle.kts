@@ -66,6 +66,7 @@ dependencies {
 
     // Dagger Hilt
     implementation (libs.hilt.android)
+    implementation(libs.firebase.auth)
     kapt (libs.hilt.compiler)
 
     // When using Hilt Fragments
