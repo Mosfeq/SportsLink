@@ -115,7 +115,7 @@ fun SportsListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xFFF8F9FA))
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -127,7 +127,7 @@ fun SportsListScreen(
                         elevation = 4.dp,
                         spotColor = Color.Black.copy(alpha = 0.08f)
                     )
-                    .background(Color(0xFFedfffe))
+                    .background(Color.White)
                     .padding(14.dp)
             ){
                 if (state.addEventDialog.isDatePickerOpen || state.filters.isFilterDatePickerOpen) {
@@ -487,7 +487,7 @@ fun SportsListScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 20.dp)
-                    .background(Color.White),
+                    .background(Color(0xFFF8F9FA)),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 20.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -601,7 +601,7 @@ private fun AddSportDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.sports),
+                            painter = painterResource(id = R.drawable.title),
                             contentDescription = null,
                             tint = Color(0xFF0A84FF),
                             modifier = Modifier.size(20.dp)
@@ -825,7 +825,7 @@ private fun AddSportDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.calendar),
+                                    painter = painterResource(id = R.drawable.clock),
                                     contentDescription = null,
                                     tint = Color(0xFF5856D6),
                                     modifier = Modifier.size(16.dp)
