@@ -49,6 +49,70 @@ class EventDetailViewModel @Inject constructor(
                                 )
                             }
                         } else {
+                            loadFromHostedEvents(eventId)
+                        }
+                    }
+                    is UiState.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = response.errorMessage ?: "Failed to load event"
+                            )
+                        }
+                    }
+                    is UiState.Loading -> {}
+                }
+            }
+        }
+    }
+
+    private fun loadFromHostedEvents(eventId: String) {
+        useCases.getHostedSportEventList { response ->
+            viewModelScope.launch {
+                when (response) {
+                    is UiState.Success -> {
+                        val event = response.data?.find { it.id == eventId }
+                        if (event != null) {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    event = event,
+                                    errorMessage = null
+                                )
+                            }
+                        } else {
+                            loadFromJoinedEvents(eventId)
+                        }
+                    }
+                    is UiState.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = response.errorMessage ?: "Failed to load event"
+                            )
+                        }
+                    }
+                    is UiState.Loading -> {}
+                }
+            }
+        }
+    }
+
+    private fun loadFromJoinedEvents(eventId: String) {
+        useCases.getJoinedSportEventList { response ->
+            viewModelScope.launch {
+                when (response) {
+                    is UiState.Success -> {
+                        val event = response.data?.find { it.id == eventId }
+                        if (event != null) {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    event = event,
+                                    errorMessage = null
+                                )
+                            }
+                        } else {
                             _state.update {
                                 it.copy(
                                     isLoading = false,

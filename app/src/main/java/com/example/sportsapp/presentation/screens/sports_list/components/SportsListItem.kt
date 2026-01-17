@@ -286,7 +286,6 @@ fun SportsListItem(
     }
 }
 
-@Composable
 private fun getExperienceColor(experience: String): Color {
     return when (experience) {
         "Beginner" -> Color(0xFF34C759)

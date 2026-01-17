@@ -616,9 +616,6 @@ private fun AddSportDialog(
                         label = {
                             Text("Event Title", color = Color(0xFFAAAAAA))
                         },
-                        placeholder = {
-                            Text("Morning Football Match", color = Color(0xFF666666))
-                        },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -657,7 +654,6 @@ private fun AddSportDialog(
                             value = state.addEventDialog.sport ?: "",
                             onValueChange = {},
                             label = { Text("Sport", color = Color(0xFFAAAAAA)) },
-                            placeholder = { Text("Select a sport", color = Color(0xFF666666)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
@@ -749,7 +745,6 @@ private fun AddSportDialog(
                             viewModel.handleIntent(SportsListIntent.UpdateEventLocation(it))
                         },
                         label = { Text("Location", color = Color(0xFFAAAAAA)) },
-                        placeholder = { Text("e.g., Hyde Park", color = Color(0xFF666666)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -891,7 +886,6 @@ private fun AddSportDialog(
                             value = state.addEventDialog.experience,
                             onValueChange = {},
                             label = { Text("Experience Level", color = Color(0xFFAAAAAA)) },
-                            placeholder = { Text("Select level", color = Color(0xFF666666)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
@@ -983,7 +977,6 @@ private fun AddSportDialog(
                             viewModel.handleIntent(SportsListIntent.UpdateEventNumberOfPlayers(it))
                         },
                         label = { Text("Number of Players", color = Color(0xFFAAAAAA)) },
-                        placeholder = { Text("e.g., 10", color = Color(0xFF666666)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
