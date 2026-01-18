@@ -50,6 +50,7 @@ import java.util.Locale
 @Composable
 fun EventDetailScreen(
     eventId: String,
+    fromJoined: Boolean = false,
     viewModel: EventDetailViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -106,14 +107,18 @@ fun EventDetailScreen(
                 }
             }
             state.event != null -> {
-                EventDetailContent(state = state, viewModel)
+                EventDetailContent(state = state, viewModel, fromJoined)
             }
         }
     }
 }
 
 @Composable
-private fun EventDetailContent(state: EventDetailViewState, viewModel: EventDetailViewModel) {
+private fun EventDetailContent(
+    state: EventDetailViewState,
+    viewModel: EventDetailViewModel,
+    fromJoined: Boolean
+) {
 
     val event = state.event
     val formattedDate = SimpleDateFormat("EEEE dd MMMM yyyy", Locale.getDefault()).format(event?.date)
@@ -323,19 +328,32 @@ private fun EventDetailContent(state: EventDetailViewState, viewModel: EventDeta
                     .shadow(
                         elevation = 8.dp,
                         shape = RoundedCornerShape(16.dp),
-                        spotColor = Color(0xFF007AFF).copy(alpha = 0.3f)
+                        spotColor = if (fromJoined) Color(0xFF007AFF).copy(alpha = 0.3f) else Color(0xFFFF3B30).copy(alpha = 0.3f)
                     )
                     .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFF007AFF),
-                                Color(0xFF0051D5)
+                        brush = if (fromJoined){
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFFFF3B30),
+                                    Color(0xFFFF2D55)
+                                )
                             )
-                        ),
+                        } else {
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFF007AFF),
+                                    Color(0xFF0051D5)
+                                )
+                            )
+                        },
                         shape = RoundedCornerShape(16.dp)
                     )
                     .clickable {
-                        event?.let { viewModel.handleIntent(EventDetailIntent.OnJoinEventClick(it)) }
+                        if (fromJoined){
+                            event?.let { viewModel.handleIntent(EventDetailIntent.OnLeaveEventClick(it)) }
+                        } else {
+                            event?.let { viewModel.handleIntent(EventDetailIntent.OnJoinEventClick(it)) }
+                        }
                     }
                     .padding(vertical = 18.dp),
                 contentAlignment = Alignment.Center
@@ -351,7 +369,7 @@ private fun EventDetailContent(state: EventDetailViewState, viewModel: EventDeta
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Join Event",
+                        text = if (fromJoined) "Leave Event" else "Join Event",
                         style = MaterialTheme.typography.titleMedium,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,

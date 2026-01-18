@@ -22,4 +22,6 @@ interface SportEventRepository {
 
     fun joinSportEvent (sportEvent: SportEvent, response: (UiState<String>) -> Unit)
 
+    fun leaveSportEvent (sportEvent: SportEvent, response: (UiState<String>) -> Unit)
+
 }

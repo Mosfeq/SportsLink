@@ -11,5 +11,6 @@ data class UseCases @Inject constructor(
     val getJoinedSportEventList: GetJoinedSportEventListUseCase,
     val addSportEvent: AddSportEventUseCase,
     val removeSportEvent: RemoveSportEventUseCase,
-    val joinSportEventUseCase: JoinSportEventUseCase
+    val joinSportEventUseCase: JoinSportEventUseCase,
+    val leaveSportEventUseCase: LeaveSportEventUseCase
 )

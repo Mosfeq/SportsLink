@@ -11,6 +11,7 @@ data class EventDetailViewState(
 sealed class EventDetailIntent{
     data class LoadEvent(val eventId: String) : EventDetailIntent()
     data class OnJoinEventClick(val event: SportEvent) : EventDetailIntent()
+    data class OnLeaveEventClick(val event: SportEvent) : EventDetailIntent()
 }
 
 sealed class EventDetailEffect(){

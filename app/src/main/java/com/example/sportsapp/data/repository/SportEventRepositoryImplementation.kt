@@ -66,4 +66,10 @@ class SportEventRepositoryImplementation @Inject constructor(
         }
     }
 
+    override fun leaveSportEvent(sportEvent: SportEvent, response: (UiState<String>) -> Unit) {
+        db.leaveSportEvent(sportEvent){
+            response.invoke(it)
+        }
+    }
+
 }

@@ -133,11 +133,16 @@ fun AppNavigation(){
                 arguments = listOf(
                     navArgument("eventId"){
                         type = NavType.StringType
+                    },
+                    navArgument("fromJoined"){
+                        type = NavType.BoolType
+                        defaultValue = false
                     }
                 )
             ){
                 val eventId = it.arguments?.getString("eventId") ?: ""
-                EventDetailScreen(eventId)
+                val fromJoined = it.arguments?.getBoolean("fromJoined") ?: false
+                EventDetailScreen(eventId, fromJoined)
             }
         }
     }

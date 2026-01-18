@@ -40,6 +40,7 @@ class MyEventsViewModel @Inject constructor(
             is MyEventsIntent.SwitchToHosted -> switchToHosted()
             is MyEventsIntent.SwitchToJoined -> switchToJoined()
             is MyEventsIntent.OnEventClick -> onEventClick(intent.event)
+            is MyEventsIntent.OnRemoveClick -> onRemoveClick(intent.event)
         }
     }
 
@@ -142,6 +143,13 @@ class MyEventsViewModel @Inject constructor(
     private fun onEventClick(event: SportEvent){
         viewModelScope.launch {
             _effect.send(MyEventsEffect.NavigateToEventDetail(event.id))
+        }
+    }
+
+    private fun onRemoveClick(event: SportEvent){
+        viewModelScope.launch {
+            useCases.removeSportEvent(event.title)
+            loadEvents()
         }
     }
 

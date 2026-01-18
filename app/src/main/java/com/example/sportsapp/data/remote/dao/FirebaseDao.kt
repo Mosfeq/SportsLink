@@ -215,7 +215,7 @@ class FirebaseDao {
                         }
                         .addOnFailureListener { error ->
                             error.localizedMessage?.let { errorMessage ->
-                                response.invoke(UiState.Error("User Not Found"))
+                                response.invoke(UiState.Error("Failed to Join Event: $errorMessage"))
                             }
                         }
                 }
@@ -229,5 +229,67 @@ class FirebaseDao {
 
     fun removeSportEvent(sportEventTitle: String){
         dbSportEvents.child(sportEventTitle).removeValue()
+            .addOnSuccessListener {
+                dbUsers.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        for (userSnapshot in snapshot.children) {
+                            val user = userSnapshot.getValue(User::class.java)
+                            if (user != null) {
+                                val updatedHostedEvents = user.hostedEvents.toMutableList()
+                                val removedFromHosted = updatedHostedEvents.removeAll { it.title == sportEventTitle }
+
+                                val updatedJoinedEvents = user.joinedEvents.toMutableList()
+                                val removedFromJoined = updatedJoinedEvents.removeAll { it.title == sportEventTitle }
+
+                                val needsUpdate = removedFromHosted || removedFromJoined
+
+                                if (needsUpdate) {
+                                    val updatedUser = user.copy(
+                                        hostedEvents = updatedHostedEvents,
+                                        joinedEvents = updatedJoinedEvents
+                                    )
+                                    userSnapshot.ref.setValue(updatedUser)
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+
+                    }
+                })
+            }
+    }
+
+    fun leaveSportEvent(sportEvent: SportEvent, response: (UiState<String>) -> Unit){
+        dbUsers.child(formattedEmail).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val user = snapshot.getValue(User::class.java)
+                if (user != null){
+                    val hasJoined = user.joinedEvents.any {it.id == sportEvent.id}
+                    if (!hasJoined) {
+                        response.invoke(UiState.Error("Join Even First"))
+                        return
+                    }
+
+                    val updatedJoinedEvents = user.joinedEvents.toMutableList()
+                    updatedJoinedEvents.removeAll { it.id == sportEvent.id }
+                    val updatedUser = user.copy(joinedEvents = updatedJoinedEvents)
+
+                    dbUsers.child(formattedEmail).setValue(updatedUser)
+                        .addOnSuccessListener {
+                            response.invoke(UiState.Success("Event Left"))
+                        }
+                        .addOnFailureListener { error ->
+                            error.localizedMessage?.let { errorMessage ->
+                                response.invoke(UiState.Error("Failed to leave event: $errorMessage"))
+                            }
+                        }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                response.invoke(UiState.Error(error.message))
+            }
+        })
     }
 }

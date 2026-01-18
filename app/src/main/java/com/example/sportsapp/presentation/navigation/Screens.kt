@@ -12,7 +12,8 @@ sealed class Screens (val route: String) {
         fun createRoute() = "sports_list_screen"
     }
     object MyEventsScreen: Screens("my_events_screen")
-    object EventDetailScreen: Screens("event_detail_screen/{eventId}"){
-        fun createRoute(eventId: String) = "event_detail_screen/$eventId"
+    object EventDetailScreen: Screens("event_detail_screen/{eventId}?fromJoined={fromJoined}"){
+        fun createRoute(eventId: String) = "event_detail_screen/$eventId?fromJoined=false"
+        fun createRouteFromJoined(eventId: String) = "event_detail_screen/$eventId?fromJoined=true"
     }
 }

@@ -65,7 +65,12 @@ fun MyEventsScreen(
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
                 is MyEventsEffect.NavigateToEventDetail -> {
-                    navController.navigate(Screens.EventDetailScreen.createRoute(effect.eventId))
+                    val route = if (state.isShowingHosted){
+                        Screens.EventDetailScreen.createRoute(effect.eventId)
+                    } else {
+                        Screens.EventDetailScreen.createRouteFromJoined(effect.eventId)
+                    }
+                    navController.navigate(route)
                 }
             }
         }
@@ -151,8 +156,12 @@ private fun MyEventsContent(
             else -> {
                 EventsList(
                     events = state.displayedEvents,
+                    isShowingHosted = state.isShowingHosted,
                     onEventClick = { event ->
                         onIntent(MyEventsIntent.OnEventClick(event))
+                    },
+                    onRemoveClick = { event ->
+                        onIntent(MyEventsIntent.OnRemoveClick(event))
                     }
                 )
             }
@@ -339,7 +348,9 @@ private fun EmptyState(
 @Composable
 private fun EventsList(
     events: List<SportEvent>,
-    onEventClick: (SportEvent) -> Unit
+    isShowingHosted: Boolean,
+    onEventClick: (SportEvent) -> Unit,
+    onRemoveClick: (SportEvent) -> Unit
 ){
     LazyColumn(
         modifier = Modifier
@@ -357,7 +368,9 @@ private fun EventsList(
         ){ event ->
             EventItem(
                 event = event,
-                onItemClick = onEventClick
+                isHostedEvent = isShowingHosted,
+                onItemClick = onEventClick,
+                onRemoveClick = if (isShowingHosted) onRemoveClick else null
             )
         }
     }

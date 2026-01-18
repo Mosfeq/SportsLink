@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +44,9 @@ import java.util.Locale
 @Composable
 fun EventItem(
     event: SportEvent,
+    isHostedEvent: Boolean = false,
     onItemClick: (SportEvent) -> Unit,
+    onRemoveClick: ((SportEvent) -> Unit)?
 ) {
 
     val dateFormatter = SimpleDateFormat("EEEE dd MMMM yyyy", Locale.getDefault())
@@ -116,25 +120,48 @@ fun EventItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = event.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        color = Color(0xFF1C1C1E),
-                        lineHeight = 24.sp
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ){
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ){
+                        Text(
+                            text = event.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = Color(0xFF1C1C1E),
+                            lineHeight = 24.sp
+                        )
 
-                    Text(
-                        text = event.sports,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = getSportColor(event.sports)
-                    )
+                        Text(
+                            text = event.sports,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = getSportColor(event.sports)
+                        )
+                    }
+
+                    if (isHostedEvent){
+                        IconButton(
+                            onClick = { onRemoveClick?.invoke(event) },
+                            modifier = Modifier.size(36.dp)
+                        ){
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete event",
+                                tint = Color(0xFFFF3B30),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
 
                 Row(
@@ -295,7 +322,9 @@ private fun SportsItemPreview(){
                     numberOfPlayers = "10",
                     host = "Mark Joseph"
                 ),
-                onItemClick = {}
+                onItemClick = {},
+                isHostedEvent = false,
+                onRemoveClick = {}
             )
 
             EventItem(
@@ -309,7 +338,9 @@ private fun SportsItemPreview(){
                     numberOfPlayers = "4",
                     host = "Sarah Williams"
                 ),
-                onItemClick = {}
+                onItemClick = {},
+                isHostedEvent = true,
+                onRemoveClick = {}
             )
         }
     }

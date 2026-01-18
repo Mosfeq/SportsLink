@@ -15,6 +15,7 @@ sealed class MyEventsIntent {
     data object SwitchToHosted: MyEventsIntent()
     data object SwitchToJoined: MyEventsIntent()
     data class OnEventClick(val event: SportEvent): MyEventsIntent()
+    data class OnRemoveClick(val event: SportEvent): MyEventsIntent()
 }
 
 sealed class MyEventsEffect {

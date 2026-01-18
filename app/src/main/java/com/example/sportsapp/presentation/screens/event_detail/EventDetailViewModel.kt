@@ -30,6 +30,7 @@ class EventDetailViewModel @Inject constructor(
         when (intent){
             is EventDetailIntent.LoadEvent -> loadEvent(intent.eventId)
             is EventDetailIntent.OnJoinEventClick -> onJoinEventClicked(intent.event)
+            is EventDetailIntent.OnLeaveEventClick -> onLeaveEventClicked(intent.event)
         }
     }
 
@@ -138,6 +139,18 @@ class EventDetailViewModel @Inject constructor(
 
     private fun onJoinEventClicked(sportEvent: SportEvent){
         useCases.joinSportEventUseCase(sportEvent){ response ->
+            viewModelScope.launch {
+                when (response){
+                    is UiState.Success -> _effect.send(EventDetailEffect.ShowToast(response.data.toString()))
+                    is UiState.Error -> _effect.send(EventDetailEffect.ShowToast(response.errorMessage.toString()))
+                    is UiState.Loading -> {}
+                }
+            }
+        }
+    }
+
+    private fun onLeaveEventClicked(sportEvent: SportEvent){
+        useCases.leaveSportEventUseCase(sportEvent){ response ->
             viewModelScope.launch {
                 when (response){
                     is UiState.Success -> _effect.send(EventDetailEffect.ShowToast(response.data.toString()))
