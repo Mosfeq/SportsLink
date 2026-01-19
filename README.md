@@ -57,6 +57,8 @@ Real-time updates for newly created or joined events
 
 - State management with immutable UI state
 
+- Jetpack Compose Animations for smooth transitions and enhanced user experience
+
 #### Backend & Services
 
 - Firebase Authentication
