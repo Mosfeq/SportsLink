@@ -3,7 +3,7 @@
 Sports Link is a modern Android application that enables users to create, discover, and join sports events with ease.
 Built using Jetpack Compose and the MVI (Model–View–Intent) architecture, the app focuses on predictable state management, scalable architecture, and a smooth user experience.
 
-Users can securely register and sign in using Firebase Authentication, browse available sports events, and apply advanced filters to find events that match their preferences.
+Users can securely register and sign in using Firebase Authentication, browse available sports events, and apply advanced filters to find events that match their preferences. They can also leave joined events and delete hosted events.
 
 -------
 
@@ -21,6 +21,10 @@ Create new sports events
 Join existing events
 
 View event details including date, time, sport, and experience level
+
+Leave joined events
+
+Delete created events
 <br>
 
 ### Advanced Filtering 🔍 
@@ -102,7 +106,7 @@ Build and run on an emulator or physical device
 A short demo of Sports Link showcasing user authentication, event creation, advanced filtering, and the Jetpack Compose UI is available on LinkedIn.
 
 👉 **Watch the demo on LinkedIn:**
-**COMING SOON**
+https://www.linkedin.com/posts/activity-7420532874874900481-7cd6?utm_source=share&utm_medium=member_desktop&rcm=ACoAADJ-7aYB4zbEAPnyTuZl4qx7zSSVG5tLCos
 
 -------
 
